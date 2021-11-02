@@ -1,0 +1,252 @@
+\documentclass[a4paper,11pt,]{report}
+%\documentclass[a4paper,twoside,11pt,titlepage]{book}
+%\usepackage[utf8]{inputenc}
+\usepackage[latin1]{inputenc} 
+\usepackage[english]{babel}
+%\usepackage[spanish,activeacute,es-tabla]{babel}
+\usepackage[none]{hyphenat}
+\usepackage{enumitem}
+\usepackage{upgreek}
+\usepackage{amsmath}
+\usepackage{babelbib} 
+\usepackage{colortbl}
+\usepackage{float}
+\usepackage{dcolumn}
+\usepackage{multirow}
+\usepackage{appendix} 
+%\usepackage{slashbox}
+\usepackage{cite}
+\usepackage{caption}
+\usepackage{subcaption}
+%\usepackage[refpages, spanish]{gloss}
+\usepackage{enumitem}
+\usepackage{adjustbox}
+\usepackage{diagbox}
+\usepackage{url}
+
+%\usepackage[backend = biber,babel=other]{biblatex}
+\usepackage{framed, color}
+\usepackage{amsmath}
+
+\DeclareMathOperator{\atantwo}{atan2}
+
+\usepackage{geometry}
+
+
+\usepackage{dcolumn}
+\newcolumntype{.}{D{.}{\esperiod}{-1}}
+%\makeatletter
+%\addto\shorthandsspanish{\let\esperiod\es@period@code}
+%\makeatother
+
+% \usepackage[style=list, number=none]{glossary} %
+%\usepackage{titlesec}
+%\usepackage{pailatino}
+
+%\usepackage[chapter]{algorithm}
+\RequirePackage{verbatim}
+%\RequirePackage[Glenn]{fncychap}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{afterpage}
+
+\usepackage{longtable}
+
+\usepackage[linktocpage=true, pdfborder={000}, colorlinks]{hyperref} %referencia
+
+\hypersetup{
+pdfauthor = {Miguel Molina Moreno: mmolina@tsc.uc3m.es},
+pdftitle = {ACME: Automatic feature extraction from Cell Migration Examination through intravital microscopy.},
+pdfsubject = {},
+pdfkeywords = {gps, rtk},
+pdfcreator = {LaTeX con el paquete pdfLatex},
+pdfproducer = {pdflatex}
+}
+
+\usepackage{titlesec}
+\titleformat{\chapter}[hang]{\LARGE\bfseries}{\thechapter. }{0.0ex}{}[\vspace{-1cm}]
+
+
+%\usepackage{doxygen/doxygen}
+%\usepackage{pdfpages}
+\usepackage{colortbl,longtable}
+\usepackage[stable]{footmisc}
+%\usepackage{index}
+
+%\makeindex
+%\usepackage[style=long, cols=2,border=plain,toc=true,number=none]{glossary}
+%\makeglossary
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	}
+
+%\renewcommand{\glossaryname}{Glosario}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LO]{\leftmark}
+\fancyhead[RE]{\rightmark}
+\fancyhead[RO,LE]{\textbf{\thepage}}
+\setlength{\parskip}{4mm}
+\setlength{\parindent}{12pt}
+\renewcommand{\chaptermark}[1]{\markboth{\textbf{#1}}{}}
+\renewcommand{\sectionmark}[1]{\markright{\textbf{\thesection. #1}}}
+\renewcommand{\arraystretch}{1}
+
+\setlength{\headheight}{1.5\headheight}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+%Definimos los tipos teorema, ejemplo y definición podremos usar estos tipos
+%simplemente poniendo \begin{teorema} \end{teorema} ...
+\newtheorem{teorema}{Teorema}[chapter]
+\newtheorem{ejemplo}{Ejemplo}[chapter]
+\newtheorem{definicion}{Definición}[chapter]
+
+\definecolor{gray97}{gray}{.97}
+\definecolor{gray75}{gray}{.75}
+\definecolor{gray45}{gray}{.45}
+\definecolor{gray30}{gray}{.94}
+\definecolor{shadecolor}{gray}{.94}
+
+\usepackage{pdfpages}
+%\addbibresource{bibliografia/bibliografia.bib}
+
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+\vspace*{-1in}
+\begin{figure}[htb]
+\begin{center}
+\vspace*{1.6in}
+%\includegraphics[width=11cm]{imagenes/uc3m.png}
+\vspace*{1.6in}
+\end{center}
+\end{figure}
+\begin{large}
+REPORT\\
+\end{large}
+\vspace*{0.4in}
+\begin{Large}
+\textbf{ACME: AUTOMATIC FEATURE EXTRACTION FOR CELL MIGRATION EXAMINATION THROUGH INTRAVITAL MICROSCOPY} \\%Más significativo que el anterior
+\end{Large}
+\vspace*{0.5in}
+\rule{80mm}{0.1mm}\\
+\vspace*{0.4in}
+\begin{large}
+Miguel Molina Moreno: mmolina@tsc.uc3m.es\\
+\end{large}
+\vspace*{0.7in}
+\begin{large}
+Multimedia Processing Group\\
+Universidad Carlos III de Madrid\\
+\end{large}
+\vspace*{0.3in}
+\end{center}
+
+\end{titlepage}
+\sloppy
+\tableofcontents 
+%
+\pagenumbering{arabic}
+\setlength{\parskip}{5pt}
+
+
+\chapter{Introduction}
+
+ACME provides a reliable framework for Automatic Cell Migration Examination in the context of intravital microscopy. We propose an end-to-end fully-automated system for segmentation, tracking and feature extraction of migrating cells within blood vessels in 4D
+microscopy imaging. Our system consists of a robust 3D convolutional neural network (CNN) for joint blood vessel and cell segmentation, a 3D tracking module with collision handling, and a novel method for feature extraction, which takes into account the
+particular geometry in the cell-vessel arrangement. Furthermore,
+we have designed an analytical method of cell behaviors based on the automatically extracted features, which supports the hypotheses related to leukocyte migration posed by expert biologists. The algorithm details can be found in \cite{our}, and a successful example of its application in \cite{nature}.
+
+The code is written in MATLAB and Python. The 3D segmentation module is partly based on the research by Çiçek et al. in \cite{3dunet} and the implementation available in \cite{mdt}. The 3D three-pass tracking code is partly based on the research by Aldasoro et al. in \cite{phagosight} and the implementation posted in \cite{phagocode}. The code is organized in different directories:
+
+\begin{itemize}
+\item \emph{matlab}: includes the scripts and functions implemented for data extraction, 3D three-pass tracking module (based on PhagoSight code \cite{phagocode}), feature extraction, cell selection module and hierarchical explainability. We use the implementation of \cite{natsort} to natural-order sort the files.
+\item \emph{python}: includes the scripts and functions implemented for the 3D Joint Segmentation module, based on \cite{mdt}, and hierarchical explainability visualization. Also it includes our trained model.
+\item \emph{data}: includes the directories for 4D data to generate the database.
+\end{itemize}
+
+\chapter{Data organization}
+
+Data must be organized as follows: \emph{4Ds} folder to store the \texttt{.sld} (or other type of initial files). Each capture must be placed in the directory \emph{sequences/groupX/Y/CaptureZ} where $X$, $Y$ and $Z$ refer to group, individual and capture indexes. Each capture is must be as a \texttt{.tif} image sequence (we have used Fiji \cite{fiji} to convert the \texttt{.sld} files to \texttt{.tif} sequences). Files are named the form: \texttt{CaptureZ\_t001\_z001\_c001.tif}, indicating the temporal instant, the z-plane and the channel of each file.
+
+Apart from that, an Excel file describing the time interval, the z-step and group and capture ids must be placed in \emph{data/data\_description.xlsx}, with the format provided with this code.
+
+\chapter{Code}
+
+This chapter is devoted to describe each one of the steps to execute the pipeline of ACME. 
+
+\section{Prerequisites}
+
+The MATLAB code has been developed with the R2017b version. The Python code has been tested with Pytorch 1.3.1, torchvision 0.4.2 and CUDA 10.1. 
+
+Before executing the Python code, it is necessary to compile the functions in \emph{custom\_extensions folder}, through the \texttt{setup\_roi\_align.py} script, with the \texttt{CUDA\_HOME} environment variable pointing to your CUDA installation. These functions have been adapted from \cite {mdt}.
+
+\section{Description}
+
+
+The provided code is organized in several scripts and functions, both in MATLAB and Python. We describe the pipeline of execution of the code below. 
+
+\begin{enumerate}
+\item First, the \texttt{matlab/config.m} script contains different configurable parameters for the experiment: venule and cell channels, group denomination, voxel size, etc. and the different modules of the system.  
+\item Once the parameters are set and the sequences are stored in the corresponding folder, the \texttt{matlab/extract\_data.m} must be used to store each 3D temporal volume of the 4D sequence (in \texttt{.mat} format) in the directory \emph{data/annotation}, to facilitate the annotation of the volumes (if you want to test how the segmentation and tracking process is working with your samples you can annotate your own volumes).
+\item Now, the \texttt{matlab/generate\_database.m} script can be used to generate the \emph{database} folder with the volumes that will be used as inputs to the 3D Joint Segmentation Module. **NOTE: the 3D Joint Segmentation Module works with slices of the 3D volumes of 256x256x16. 
+\item The data are prepared for the inference process. This is done by the \texttt{python/detection\_inference.py} function. The inference results are stored in the \emph{database} folder.
+\item After this step, we return to MATLAB implementation to process the ACME segmentations with the script \texttt{matlab/process\_ACME\_segmentations}, which accumulates the cell and blood vessel segmentations per capture and performs the 3D three-pass tracking. At this point of the pipeline you can print the images (see the \texttt{matlab/config.m} JPEG variable) in the \emph{database/jpgs\_results}.
+\item The next step consists of extracting the instantaneous and dynamic features with the \texttt{extract\_instantaneous\_features.m} and the \texttt{extract\_dynamic\_features.m} scripts, respectively.
+\item The pipeline of cell detection ends with the \texttt{matlab/cell\_selection\_module.m} script. From the extracted features, it applies the trained classifier to detect those cells that are well segmented (in terms of the fixed precision level), see \texttt{matlab/config.m} file.
+\item Finally, the hierarchical explainability module (\texttt{hierarchical\_explainability.m}) detects the behaviors, builds the hierarchy from them and offers the most relevant features for each partition of the hierarchy (there are configurable parameters in \texttt{config.m}). In addition, the \texttt{python/visualization.py} function is able to arrange the data in t-SNE or UMAP plots for a better understanding.
+\end{enumerate}
+
+\chapter{Data description}
+
+This code is distributed along with some pre-trained modules which are described below: 
+
+\begin{itemize}
+\item \emph{python/models/ACME.pth}: trained 3D Joint Segmentation module.
+\item \emph{matlab/models/cell\_selection\_module.mat}: trained cell selection module. 
+\end{itemize}
+
+The reported performance of these modules detectors in terms of precision and recall is shown in Table \ref{tab:neutsel}.
+
+\begin{table}[!ht]
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{| c | c | c | c |}
+\hline 
+\textbf{Component} & \textbf{Precision (\%)} & \textbf{Recall (\%)} & $\mathbf{IoU_{blood \ vessel}}$ \textbf{(\%)}\\
+\hline
+\textbf{3D Joint Segmentation module}  & $67.13$ & \textbf{78.46} & 88.09 \\
+\hline
+\textbf{3D three-pass tracking}  & $66.45$ & 75.67 & 88.09\\
+\hline
+\textbf{Cell selection module} & \textbf{95.28} & \textbf{30.48} & 88.09\\
+\hline 
+\end{tabular}
+\end{adjustbox}
+\caption{Cell detection and blood vessel segmentation performance of the proposed system in terms of precision, recall and IoU.}
+\label{tab:neutsel}
+\end{table}
+
+We also include an example of 4D capture of the database in \emph{database/sequences}, a data description file in \texttt{database/data\_description.xlsx} and the results of our article in \emph{matlab/results} to execute the hierarchical explainability part of the code and get meaningful insights from the data. 
+
+\chapter{Use}
+
+The code is distributed under GNU GPL3 license (which allows use and code modification) and this documentation under Creative Commons 4.0 license, which allows its free use and modification. In case you use the code, please cite \cite{our} and \cite{nature}.
+
+About the reproducibility of the results, in similar applications to the ones described in the article, the detector can offer a high precision in cell detection with an acceptable recall, and can offer meaningful insights about the cell behaviors. The adaptation to other types of samples will be explored in subsequent releases of the system.
+
+**NOTE: apart from that, the hierarchical explainability module can offer slightly different results in function of the seed for the K-Means algorithm, FAITHFULNESS\_LEVEL variable and FFFS algorithm (which can be applied or not). It is possible that the low levels of the hierarchy and the relevant features for each partition would be different, but the general insights about the biological hypotheses of the problem must remain unalterable.
+
+
+
+
+\nocite{*}
+\bibliography{bibliography}\addcontentsline{toc}{chapter}{Bibliography}
+\bibliographystyle{babunsrt}
+%%\chapter*{}
+\thispagestyle{empty}
+
+\end{document}
