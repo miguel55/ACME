@@ -1,4 +1,6 @@
-# ACME
+# ACME <a href="https://zenodo.org/badge/latestdoi/423791730"><img src="https://zenodo.org/badge/423791730.svg" alt="DOI"></a>
+
+
 
 ## Description
 This repository contains the code and documentation to implement ACME (Automatic Cell Migration Examination):
