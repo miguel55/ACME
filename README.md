@@ -28,7 +28,7 @@ ACME code is released under the GNU GPLv3 License (refer to the `LICENSE` and `C
 If you find ACME useful in your research, please consider citing:
 
 	@ARTICLE{acme,
-		author = {Miguel Molina Moreno, Iv\'an Gonz\'alez D\'iaz, Georgiana Crainiciuc, Miguel Palomino Segura, Jon Sicilia, Andr\'es Hidalgo and Fernando D\'iaz de Mar\'ia},
+		author = {Miguel Molina Moreno, Iv\'an Gonz\'alez D\'iaz, Jon Sicilia, Georgiana Crainiciuc, Miguel Palomino Segura,  Andr\'es Hidalgo and Fernando D\'iaz de Mar\'ia},
 		title = {{ACME}: Automatic feature extraction for Cell Migration Examination through intravital microscopy imaging},
 		journal = {Medical Image Analysis},
 		year = {2021},
