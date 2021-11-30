@@ -97,11 +97,11 @@ criterionBD(~islocalmin(criterionBD))=1;
 cidx=zeros(size(y_train));
 rng(seed);
 [cidx12,cmeans] = kmeans(X_train12,K_selected,'dist','sqeuclidean','Replicates',100);
-cidx(y_train<(nG_BD+1))=cidx12;
-X_trainR=X_train(y_train>=(nG_BD+1),:);
+cidx(ismember(y_train,groups_beh_discovery))=cidx12;
+X_trainR=X_train(~ismember(y_train,groups_beh_discovery),:);
 ds=pdist2(X_trainR,cmeans);
 [ds,p]=min(ds,[],2);
-cidx(y_train>=(nG_BD+1))=p;
+cidx(~ismember(y_train,groups_beh_discovery))=p;
 %% Hierarchical explainability
 K_exp=K_selected;
 X_trainH=[XTRACK XSIMPLE];
