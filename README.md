@@ -8,13 +8,13 @@ This repository contains the code and documentation to implement ACME (Automatic
 ```
 ACME: Automatic feature extraction for Cell Migration Examination through intravital microscopy imaging,
 Miguel Molina-Moreno, Iván González-Díaz, Georgiana Crainiciuc, Miguel Palomino-Segura, Jon Sicilia, Andrés Hidalgo and Fernando Díaz-de-María
-Medical Image Analysis, 2021 (in review)
+Medical Image Analysis, 77, https://doi.org/10.1016/j.media.2022.102358, 2022. 
 ```
 
 ```
 Behavioral immune landscapes of inflammation,
 Georgiana Crainiciuc, Miguel Palomino-Segura, Miguel Molina-Moreno, Jon Sicilia and others.
-Nature, 2021 (accepted for publication)
+Nature, 601, 415–421, https://doi.org/10.1038/s41586-021-04263-y, 2022.
 ```
 
 This code is partly based on the implementations of [U-Net 3D](https://github.com/MIC-DKFZ/medicaldetectiontoolkit) and [PhagoSight](https://github.com/phagosight/phagosight).
@@ -28,15 +28,15 @@ ACME code is released under the GNU GPLv3 License (refer to the `LICENSE` and `C
 If you find ACME useful in your research, please consider citing:
 
 	@ARTICLE{acme,
-		author = {Miguel Molina Moreno, Iv\'an Gonz\'alez D\'iaz, Jon Sicilia, Georgiana Crainiciuc, Miguel Palomino Segura,  Andr\'es Hidalgo and Fernando D\'iaz de Mar\'ia},
-		title = {{ACME}: Automatic feature extraction for Cell Migration Examination through intravital microscopy imaging},
+		title = {ACME: Automatic feature extraction for cell migration examination through intravital microscopy imaging},
 		journal = {Medical Image Analysis},
-		year = {2021},
-		volume={CoRR},
-		number={},
-		pages={},
-		doi={},
-		ISSN={}
+		volume = {77},
+		pages = {102358},
+		year = {2022},
+		issn = {1361-8415},
+		doi = {https://doi.org/10.1016/j.media.2022.102358},
+		url = {https://www.sciencedirect.com/science/article/pii/S1361841522000111},
+		author = {Miguel Molina-Moreno and Iván González-Díaz and Jon Sicilia and Georgiana Crainiciuc and Miguel Palomino-Segura and Andrés Hidalgo and Fernando Díaz-de-María}
 	}
   
   	@ARTICLE{behavioral,
@@ -44,11 +44,11 @@ If you find ACME useful in your research, please consider citing:
 		title = {Behavioral immune landscapes of inflammation},
 		journal = {Nature},
 		year = {2021},
-		volume={},
+		volume={601},
 		number={},
-		pages={},
-		doi={},
-		ISSN={}
+		pages={415-421},
+		doi={https://doi.org/10.1038/s41586-021-04263-y},
+		ISSN={1476-4687}
 	}
   
 
