@@ -308,7 +308,7 @@ for vol=1:length(sequences)
                         % Obtain the plane where the cell center is over
                         % the rotated venule. Obtain the elliptical cross -
                         % section by least squares
-                        mask=squeeze(venule_boundary_rot(:,round(centroid_rot(1)),:))';
+                        mask=squeeze(venule_boundary_rot(:,min(max(round(centroid_rot(1)),1),size(venule_boundary_rot,2)),:))';
                         indexes=find(mask(:));
                         [y,x]=ind2sub(size(mask),indexes);
                         if (~isempty(x))
