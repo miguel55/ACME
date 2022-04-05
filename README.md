@@ -14,7 +14,7 @@ Medical Image Analysis, 77, https://doi.org/10.1016/j.media.2022.102358, 2022.
 ```
 Behavioral immune landscapes of inflammation,
 Georgiana Crainiciuc, Miguel Palomino-Segura, Miguel Molina-Moreno, Jon Sicilia and others.
-Nature, 601, 415–421, https://doi.org/10.1038/s41586-021-04263-y, 2022.
+Nature, vol. 601, no. 7893, 415–421, https://doi.org/10.1038/s41586-021-04263-y, 2022.
 ```
 
 This code is partly based on the implementations of [U-Net 3D](https://github.com/MIC-DKFZ/medicaldetectiontoolkit) and [PhagoSight](https://github.com/phagosight/phagosight).
@@ -45,7 +45,7 @@ If you find ACME useful in your research, please consider citing:
 		journal = {Nature},
 		year = {2021},
 		volume={601},
-		number={},
+		number={7893},
 		pages={415-421},
 		doi={https://doi.org/10.1038/s41586-021-04263-y},
 		ISSN={1476-4687}
