@@ -40,7 +40,7 @@ If you find ACME useful in your research, please consider citing:
 	}
   
   	@ARTICLE{behavioral,
-		author = {Georgiana Crainiciuc, Miguel Palomino Segura, Miguel Molina Moreno, Jon Sicilia and others},
+		author = {Georgiana Crainiciuc and Miguel Palomino-Segura and Miguel Molina-Moreno and Jon Sicilia and others},
 		title = {Behavioral immune landscapes of inflammation},
 		journal = {Nature},
 		year = {2021},
