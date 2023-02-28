@@ -9,11 +9,11 @@ if (~exist('../database/volumes_init','dir'))
 end
 % Get the original captures
 for i=1:length(sequences)
-    d2=dir([sequences{i},'/','*.mat']);
-    aux=strsplit(sequences{i},'/');
+    d2=dir([sequences{i},filesep,'*.mat']);
+    aux=strsplit(sequences{i},filesep);
     for j=1:length(d2)
         name=[aux{end-1},'__',aux{end},'__',d2(j).name];
-        load([d2(j).folder, '/', d2(j).name]);
+        load([d2(j).folder, filesep, d2(j).name]);
         % Re-arrange channels
         if (size(data,3)==2)
             data=cat(3,data(:,:,cell_channels,:),zeros(size(data,1),size(data,2),1,size(data,4)),data(:,:,venule_channel,:));
@@ -30,11 +30,11 @@ if (~exist('../database/volumes','dir'))
 end
 for i=1:length(sequences)
     disp(i);
-    d2=dir([sequences{i},'/','*.mat']);
-    aux=strsplit(sequences{i},'/');
+    d2=dir([sequences{i},filesep,'*.mat']);
+    aux=strsplit(sequences{i},filesep);
     for j=1:length(d2)
         name=[aux{end-1},'__',aux{end},'__',d2(j).name];
-        load([d2(j).folder, '/', d2(j).name]);
+        load([d2(j).folder, filesep, d2(j).name]);
         % Re-arrange channels
         if (size(data,3)==2)
             data=cat(3,data(:,:,cell_channels,:),zeros(size(data,1),size(data,2),1,size(data,4)),data(:,:,venule_channel,:));
