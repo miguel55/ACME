@@ -491,8 +491,20 @@ if (sum(scores(:)>0) > 0)
                 [~,p]=min(ds_neu);
                 [~,s]=sort(ds_neu);
                 segm_ref=uint8(zeros(size(segm_ref)));
-                segm_ref(S_init.VoxelIdxList{s(1)})=1; % Las dos más cercanas
-                segm_ref(S_init.VoxelIdxList{s(2)})=2; 
+                segm_ref(S_init.VoxelIdxList{s(1)})=1; 
+                % Get the 2 nearest regions
+                if (length(s)>1)
+                    segm_ref(S_init.VoxelIdxList{s(2)})=2;
+                    bbox=[min(S_init.BoundingBox(s(1),1),S_init.BoundingBox(s(2),1)) min(S_init.BoundingBox(s(1),2),S_init.BoundingBox(s(2),2)) ...
+                    min(S_init.BoundingBox(s(1),3),S_init.BoundingBox(s(2),3)) ...
+                    max(S_init.BoundingBox(s(1),1)+S_init.BoundingBox(s(1),4),S_init.BoundingBox(s(2),1)+S_init.BoundingBox(s(2),4))+1 ...
+                    max(S_init.BoundingBox(s(1),2)+S_init.BoundingBox(s(1),5),S_init.BoundingBox(s(2),2)+S_init.BoundingBox(s(2),5))+1 ...
+                    max(S_init.BoundingBox(s(1),3)+S_init.BoundingBox(s(1),6),S_init.BoundingBox(s(2),3)+S_init.BoundingBox(s(2),6))+1];
+                    bbox=min(max(bbox,[1 1 1 0 0 0]),[Inf Inf Inf size(segm_ref,1) size(segm_ref,2) size(segm_ref,3)]);
+                else
+                    bbox=[S_init.BoundingBox(s(1),1:3),S_init.BoundingBox(s(1),1:3)+S_init.BoundingBox(s(1),4:6)+1];
+                    bbox=min(max(bbox,[1 1 1 0 0 0]),[Inf Inf Inf size(segm_ref,1) size(segm_ref,2) size(segm_ref,3)]);
+                end 
                 neuts_aux=handles.nodeNetwork(handles.nodeNetwork(:,5)==handles.nodeNetwork(find(handles.nodeNetwork(:,6)==neuts(j)),5),:);
                 id_aux=intersect(neuts_aux(:,6),neuts);
                 centers_aux2 = handles.nodeNetwork(handles.nodeNetwork(:,6)==id_aux,1:3);
@@ -506,12 +518,6 @@ if (sum(scores(:)>0) > 0)
                 load([dataRe,filesep,'T',sprintf('%05d',handles.nodeNetwork(find(handles.nodeNetwork(:,6)==neuts(j)),5)),'.mat']);
                 data=data(:,:,end-1,:);
                 data=squeeze(max(data,[],3));
-                bbox=[min(S_init.BoundingBox(s(1),1),S_init.BoundingBox(s(2),1)) min(S_init.BoundingBox(s(1),2),S_init.BoundingBox(s(2),2)) ...
-                    min(S_init.BoundingBox(s(1),3),S_init.BoundingBox(s(2),3)) ...
-                    max(S_init.BoundingBox(s(1),1)+S_init.BoundingBox(s(1),4),S_init.BoundingBox(s(2),1)+S_init.BoundingBox(s(2),4))+1 ...
-                    max(S_init.BoundingBox(s(1),2)+S_init.BoundingBox(s(1),5),S_init.BoundingBox(s(2),2)+S_init.BoundingBox(s(2),5))+1 ...
-                    max(S_init.BoundingBox(s(1),3)+S_init.BoundingBox(s(1),6),S_init.BoundingBox(s(2),3)+S_init.BoundingBox(s(2),6))+1];
-                bbox=min(max(bbox,[1 1 1 0 0 0]),[Inf Inf Inf size(segm_ref,1) size(segm_ref,2) size(segm_ref,3)]);
                 bbox2=[S_aux.BoundingBox(p_aux,1:3),S_aux.BoundingBox(p_aux,1:3)+S_aux.BoundingBox(p_aux,4:6)+1];
                 bbox2=min(max(bbox2,[1 1 1 0 0 0]),[Inf Inf Inf size(segm_aux,1) size(segm_aux,2) size(segm_aux,3)]);
                 data_rec=data(floor(bbox2(2)):floor(bbox2(5)),floor(bbox2(1)):floor(bbox2(4)),floor(bbox2(3)):floor(bbox2(6)));
