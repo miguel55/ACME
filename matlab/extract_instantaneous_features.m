@@ -85,6 +85,7 @@ for vol=1:length(sequences)
                 if plane_xy(1,1)
                     initH=max(find(plane_xy(1,:)>0));
                     initV=max(find(plane_xy(:,1)>0));
+                    skel2D_aux=skel2D;
                     skel2D(1:initV,1:initH)=false;
                     if (xdir)
                         skel2D(:,1:initH)=false;
@@ -99,15 +100,20 @@ for vol=1:length(sequences)
                     end
                     S_skel=regionprops(skel2D,'PixelList');
                     p1=cat(1,S_skel(:).PixelList);
-                    p=dsearchn(p1,[1,1]);
-                    p1=p1(p,:);
-                    points=[linspace(p1(1),p2(1),1000);linspace(p1(2),p2(2),1000)]';
-                    points=unique(round(points),'rows');
-                    skel2D(sub2ind(size(skel2D),points(:,2),points(:,1)))=true;
+                    if (~isempty(p1))
+                        p=dsearchn(p1,[1,1]);
+                        p1=p1(p,:);
+                        points=[linspace(p1(1),p2(1),1000);linspace(p1(2),p2(2),1000)]';
+                        points=unique(round(points),'rows');
+                        skel2D(sub2ind(size(skel2D),points(:,2),points(:,1)))=true;
+                    else
+                        skel2D=skel2D_aux;
+                    end
                 end
                 if plane_xy(1,size(plane_xy,2))
                     initH=min(find(plane_xy(1,:)>0));
                     initV=max(find(plane_xy(:,size(plane_xy,2))>0));
+                    skel2D_aux=skel2D;
                     skel2D(1:initV,initH:end)=false;
                     if (xdir)
                         skel2D(:,initH:end)=false;
@@ -122,15 +128,20 @@ for vol=1:length(sequences)
                     end
                     S_skel=regionprops(skel2D,'PixelList');
                     p1=cat(1,S_skel(:).PixelList);
-                    p=dsearchn(p1,[size(plane_xy,2),1]);
-                    p1=p1(p,:);
-                    points=[linspace(p1(1),p2(1),1000);linspace(p1(2),p2(2),1000)]';
-                    points=unique(round(points),'rows');
-                    skel2D(sub2ind(size(skel2D),points(:,2),points(:,1)))=true;
+                    if (~isempty(p1))
+                        p=dsearchn(p1,[size(plane_xy,2),1]);
+                        p1=p1(p,:);
+                        points=[linspace(p1(1),p2(1),1000);linspace(p1(2),p2(2),1000)]';
+                        points=unique(round(points),'rows');
+                        skel2D(sub2ind(size(skel2D),points(:,2),points(:,1)))=true;
+                    else
+                        skel2D=skel2D_aux;
+                    end
                 end
                 if plane_xy(size(plane_xy,1),size(plane_xy,2))
                     initH=min(find(plane_xy(size(plane_xy,1),:)>0));
                     initV=min(find(plane_xy(:,size(plane_xy,2))>0));
+                    skel2D_aux=skel2D;
                     skel2D(initV:end,initH:end)=false;
                     if (xdir)
                         skel2D(:,initH:end)=false;
@@ -145,15 +156,20 @@ for vol=1:length(sequences)
                     end
                     S_skel=regionprops(skel2D,'PixelList');
                     p1=cat(1,S_skel(:).PixelList);
-                    p=dsearchn(p1,[size(plane_xy,1),size(plane_xy,2)]);
-                    p1=p1(p,:);
-                    points=[linspace(p1(1),p2(1),1000);linspace(p1(2),p2(2),1000)]';
-                    points=unique(round(points),'rows');
-                    skel2D(sub2ind(size(skel2D),points(:,2),points(:,1)))=true;
+                    if (~isempty(p1))
+                        p=dsearchn(p1,[size(plane_xy,1),size(plane_xy,2)]);
+                        p1=p1(p,:);
+                        points=[linspace(p1(1),p2(1),1000);linspace(p1(2),p2(2),1000)]';
+                        points=unique(round(points),'rows');
+                        skel2D(sub2ind(size(skel2D),points(:,2),points(:,1)))=true;
+                    else
+                        skel2D=skel2D_aux;
+                    end
                 end
                 if plane_xy(size(plane_xy,1),1)
                     initH=max(find(plane_xy(size(plane_xy,1),:)>0));
                     initV=min(find(plane_xy(:,1)>0));
+                    skel2D_aux=skel2D;
                     skel2D(initV:end,1:initH)=false;
                     if (xdir)
                         skel2D(:,1:initH)=false;
@@ -168,11 +184,15 @@ for vol=1:length(sequences)
                     end
                     S_skel=regionprops(skel2D,'PixelList');
                     p1=cat(1,S_skel(:).PixelList);
-                    p=dsearchn(p1,[1,size(plane_xy,1)]);
-                    p1=p1(p,:);
-                    points=[linspace(p1(1),p2(1),1000);linspace(p1(2),p2(2),1000)]';
-                    points=unique(round(points),'rows');
-                    skel2D(sub2ind(size(skel2D),points(:,2),points(:,1)))=true;
+                    if (~isempty(p1))
+                        p=dsearchn(p1,[1,size(plane_xy,1)]);
+                        p1=p1(p,:);
+                        points=[linspace(p1(1),p2(1),1000);linspace(p1(2),p2(2),1000)]';
+                        points=unique(round(points),'rows');
+                        skel2D(sub2ind(size(skel2D),points(:,2),points(:,1)))=true;
+                    else
+                        skel2D=skel2D_aux;
+                    end
                 end  
                 skel=false(size(venule));
                 if (sum(plane_xy(:,1))>sum(plane_xy(1,:)))
