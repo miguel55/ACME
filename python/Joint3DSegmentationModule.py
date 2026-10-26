@@ -886,7 +886,7 @@ class net(nn.Module):
             segmented_rois=segmented_rois/np.concatenate((np.repeat(np.array(self.cf.patch_size),2),np.array([1])),axis=0)
             segmented_rois=torch.as_tensor(segmented_rois,dtype=torch.float32).cuda()
             if (segmented_rois.size(0)>0):
-                segmentation_classifier_logits = self.Classifier_segmentation(fpn_outs[1:], segmented_rois)
+                segmentation_classifier_logits = self.wscc(fpn_outs[1:], segmented_rois)
             else:
                 segmentation_classifier_logits = torch.zeros((segmented_rois.shape[0],2),dtype=torch.float32).cuda()
     
