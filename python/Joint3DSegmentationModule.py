@@ -816,6 +816,7 @@ class net(nn.Module):
                     'seg_preds': pixelwise segmentation output (b, c, y, x, (z)) with values [0, .., n_classes].
                     'monitor_values': dict of values to be monitored.
             """
+            stage = str(kwargs.get('stage', 2))  # '1': segmentation, '2': classifier fine-tuning
             img = batch['data']
             gt_class_ids = batch['roi_labels']
             gt_boxes = batch['bb_target']
@@ -850,9 +851,12 @@ class net(nn.Module):
             var_venule[var_seg==1] = 2
             seg_loss_ce_venule = criterion_venule(venule_logits,var_venule[:,0,:,:,:])
                     
-            # Classifier
+            # Segmentation loss (shared by both stages)
+            seg_loss = (0.3*seg_loss_ce_aux+((seg_loss_dice + seg_loss_ce) / 2))+seg_loss_ce_venule
+
+            # Candidate regions from the predicted cell mask (used in both stages)
             prob = FT.softmax(seg_logits,dim=1)
-            _, preds = torch.max(prob, 1)  
+            _, preds = torch.max(prob, 1)
             preds=preds.squeeze().cpu().numpy()
             clusters, n_cands =lb(preds[np.newaxis,:,:,:])
             rois = np.array([(clusters == ii) * 1 for ii in range(1, n_cands + 1)])
@@ -862,7 +866,26 @@ class net(nn.Module):
                     seg_ixs = np.argwhere(r != 0)
                     segmented_rois[rix,:] = np.array([np.min(seg_ixs[:, 1])-1, np.min(seg_ixs[:, 2])-1, np.max(seg_ixs[:, 1])+1,
                                       np.max(seg_ixs[:, 2])+1, np.min(seg_ixs[:, 3])-1, np.max(seg_ixs[:, 3])+1, 0])
-                
+
+            if stage == '1':
+                # Stage 1: segmentation only. No classifier forward, no classification loss.
+                # Every candidate is reported as a detection (pred 1, score 1) so precision/recall
+                # can still be monitored; target -1 keeps them out of the AUC in run_epoch.
+                loss = seg_loss
+                segmented_rois=torch.as_tensor(segmented_rois,dtype=torch.float32).cuda()
+                n = segmented_rois.size(0)
+                ones = torch.ones((n,1),dtype=torch.float32).cuda()
+                detections=torch.cat((segmented_rois, ones, ones, -ones),dim=1)
+                results_dict = get_results_classifier(self.cf, img.shape, detections, seg_logits, venule_logits, box_results_list)
+                results_dict['torch_loss'] = loss
+                results_dict['monitor_values'] = {'loss': loss.item(), 'class_loss': 0.0}
+                results_dict['logger_string'] = \
+                    "loss: {0:.2f}, seg dice: {1:.3f}, seg ce: {2:.3f}, aux ce: {3:.3f}, venule ce: {4:.3f}, mean pix. pr.: {5:.5f}"\
+                    .format(loss.item(), seg_loss_dice.item(), seg_loss_ce.item(), seg_loss_ce_aux.item(),
+                            seg_loss_ce_venule.item(), np.mean(results_dict['seg_preds']))
+                return results_dict
+
+            # Stage 2: classifier fine-tuning
             if 0 not in gt_boxes.shape:
                 overlaps = mutils.compute_overlaps(segmented_rois, gt_boxes[0,:,:])
                 rows, cols = np.where(overlaps>0.5)
@@ -874,14 +897,14 @@ class net(nn.Module):
                     pred=preds[reg[0]:reg[2],reg[1]:reg[3],reg[4]:reg[5]]
                     gt=batch['seg'][0,0,reg[0]:reg[2],reg[1]:reg[3],reg[4]:reg[5]]
                     overlaps[r,c]=np.sum(pred*gt)/(np.sum(pred)+np.sum(gt)-np.sum(pred*gt))
-                    
+
                 # Generate target class
                 overlaps = np.max(overlaps,axis=1)
                 target_class_ids = torch.as_tensor((overlaps>0.7).astype(int),dtype=torch.long).cuda()
                 target_class_ids[np.where(np.logical_and(overlaps>0.5, overlaps<=0.7))]=-1
             else:
                 target_class_ids = torch.zeros((segmented_rois.shape[0],),dtype=torch.long).cuda()
-    
+
             # Divide to normalize
             segmented_rois=segmented_rois/np.concatenate((np.repeat(np.array(self.cf.patch_size),2),np.array([1])),axis=0)
             segmented_rois=torch.as_tensor(segmented_rois,dtype=torch.float32).cuda()
@@ -889,12 +912,12 @@ class net(nn.Module):
                 segmentation_classifier_logits = self.wscc(fpn_outs[1:], segmented_rois)
             else:
                 segmentation_classifier_logits = torch.zeros((segmented_rois.shape[0],2),dtype=torch.float32).cuda()
-    
+
             batch_class_loss = compute_segmentation_classifier_loss(target_class_ids, segmentation_classifier_logits)
-            
-            # Auxiliary loss
-            loss = batch_class_loss + 0.001*((0.3*seg_loss_ce_aux+((seg_loss_dice + seg_loss_ce) / 2))+seg_loss_ce_venule) 
-            
+
+            # Classifier loss + auxiliary segmentation loss
+            loss = batch_class_loss + 0.001*seg_loss
+
             if (segmented_rois.size(0)>0):
                 score=F.softmax(segmentation_classifier_logits, 1);
                 _,segmented_pred=torch.max(score,dim=1)
