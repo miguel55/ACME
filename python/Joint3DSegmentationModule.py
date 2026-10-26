@@ -805,6 +805,115 @@ class net(nn.Module):
         # Classifier
         self.wscc = Well_Segmented_Cell_Classifier(self.cf, conv)
 
+    def train_forward(self, batch, **kwargs):
+            """
+            train method (also used for validation monitoring). wrapper around forward pass of network. prepares input data
+            for processing, computes losses, and stores outputs in a dictionary.
+            :param batch: dictionary containing 'data', 'seg', etc.
+            :return: results_dict: dictionary with keys:
+                    'boxes': list over batch elements. each batch element is a list of boxes. each box is a dictionary:
+                            [[{box_0}, ... {box_n}], [{box_0}, ... {box_n}], ...]
+                    'seg_preds': pixelwise segmentation output (b, c, y, x, (z)) with values [0, .., n_classes].
+                    'monitor_values': dict of values to be monitored.
+            """
+            img = batch['data']
+            gt_class_ids = batch['roi_labels']
+            gt_boxes = batch['bb_target']
+            var_seg_ohe = torch.FloatTensor(mutils.get_one_hot_encoding(batch['seg'], self.cf.num_seg_classes)).cuda()
+            var_seg = torch.LongTensor(batch['seg']).cuda()
+            var_venule = torch.LongTensor(batch['venule']).cuda()
+    
+            img = torch.from_numpy(img).float().cuda()
+            batch_class_loss = torch.FloatTensor([0]).cuda()
+    
+            # list of output boxes for monitoring/plotting. each element is a list of boxes per batch element.
+            box_results_list = [[] for _ in range(img.shape[0])]
+            outputs = self.forward(img)
+            fpn_outs = outputs['f_maps']
+            seg_logits = fpn_outs[0]
+    
+            # Segmentation losses
+            seg_loss_dice = 1 - mutils.batch_dice(F.softmax(seg_logits, dim=1),var_seg_ohe)
+            criterion= FocalLossBCE(class_num=2, gamma=2, alpha=293)
+            seg_loss_ce = criterion(seg_logits,var_seg_ohe)
+            
+            # Auxiliary segmenter
+            aux = outputs['aux']
+            seg_logits_aux = aux
+            seg_loss_ce_aux = criterion(seg_logits_aux,var_seg_ohe)
+            
+            # Venule head
+            venule_logits = outputs['venule']
+            criterion_venule=torch.nn.CrossEntropyLoss()
+            if (var_venule.max()>1):
+                var_venule[var_venule>1] = 1
+            var_venule[var_seg==1] = 2
+            seg_loss_ce_venule = criterion_venule(venule_logits,var_venule[:,0,:,:,:])
+                    
+            # Classifier
+            prob = FT.softmax(seg_logits,dim=1)
+            _, preds = torch.max(prob, 1)  
+            preds=preds.squeeze().cpu().numpy()
+            clusters, n_cands =lb(preds[np.newaxis,:,:,:])
+            rois = np.array([(clusters == ii) * 1 for ii in range(1, n_cands + 1)])
+            segmented_rois=np.zeros((n_cands,7),dtype='float32')
+            for rix, r in enumerate(rois):
+                if np.sum(r !=0) > 0: #check if the lesion survived data augmentation
+                    seg_ixs = np.argwhere(r != 0)
+                    segmented_rois[rix,:] = np.array([np.min(seg_ixs[:, 1])-1, np.min(seg_ixs[:, 2])-1, np.max(seg_ixs[:, 1])+1,
+                                      np.max(seg_ixs[:, 2])+1, np.min(seg_ixs[:, 3])-1, np.max(seg_ixs[:, 3])+1, 0])
+                
+            if 0 not in gt_boxes.shape:
+                overlaps = mutils.compute_overlaps(segmented_rois, gt_boxes[0,:,:])
+                rows, cols = np.where(overlaps>0.5)
+                for r, c in zip(rows,cols):
+                    bbox=np.concatenate((segmented_rois[r,:-1][np.newaxis,:],gt_boxes[0,c,:][np.newaxis,:]),axis=0)
+                    reg=[min(bbox[:,0]),min(bbox[:,1]),max(bbox[:,2]),max(bbox[:,3]),min(bbox[:,4]),max(bbox[:,5])]
+                    reg=np.array(reg).astype('int')
+                    reg[reg<0]=0
+                    pred=preds[reg[0]:reg[2],reg[1]:reg[3],reg[4]:reg[5]]
+                    gt=batch['seg'][0,0,reg[0]:reg[2],reg[1]:reg[3],reg[4]:reg[5]]
+                    overlaps[r,c]=np.sum(pred*gt)/(np.sum(pred)+np.sum(gt)-np.sum(pred*gt))
+                    
+                # Generate target class
+                overlaps = np.max(overlaps,axis=1)
+                target_class_ids = torch.as_tensor((overlaps>0.7).astype(int),dtype=torch.long).cuda()
+                target_class_ids[np.where(np.logical_and(overlaps>0.5, overlaps<=0.7))]=-1
+            else:
+                target_class_ids = torch.zeros((segmented_rois.shape[0],),dtype=torch.long).cuda()
+    
+            # Divide to normalize
+            segmented_rois=segmented_rois/np.concatenate((np.repeat(np.array(self.cf.patch_size),2),np.array([1])),axis=0)
+            segmented_rois=torch.as_tensor(segmented_rois,dtype=torch.float32).cuda()
+            if (segmented_rois.size(0)>0):
+                segmentation_classifier_logits = self.Classifier_segmentation(fpn_outs[1:], segmented_rois)
+            else:
+                segmentation_classifier_logits = torch.zeros((segmented_rois.shape[0],2),dtype=torch.float32).cuda()
+    
+            batch_class_loss = compute_segmentation_classifier_loss(target_class_ids, segmentation_classifier_logits)
+            
+            # Auxiliary loss
+            loss = batch_class_loss + 0.001*((0.3*seg_loss_ce_aux+((seg_loss_dice + seg_loss_ce) / 2))+seg_loss_ce_venule) 
+            
+            if (segmented_rois.size(0)>0):
+                score=F.softmax(segmentation_classifier_logits, 1);
+                _,segmented_pred=torch.max(score,dim=1)
+                segmented_rois=segmented_rois*torch.as_tensor(np.concatenate((np.repeat(np.array(self.cf.patch_size),2),np.array([1])),axis=0)).type(torch.float32).cuda()
+                detections=torch.cat((segmented_rois,segmented_pred.type(torch.float32)[:,None],score[:,1][:,None],target_class_ids.type(torch.float32)[:,None]),dim=1)
+            else:
+                detections=torch.zeros((segmented_rois.shape[0],10),dtype=torch.float32).cuda()
+            
+            results_dict = get_results_classifier(self.cf, img.shape, detections, seg_logits, venule_logits, box_results_list)
+            results_dict['torch_loss'] = loss
+            results_dict['monitor_values'] = {'loss': loss.item(), 'class_loss': batch_class_loss.item()}
+            results_dict['logger_string'] = \
+                "loss: {0:.2f}, class: {1:.2f}, seg dice: {2:.3f}, seg ce: {3:.3f}, mean pix. pr.: {4:.5f}"\
+                .format(loss.item(), batch_class_loss.item(), seg_loss_dice.item(),
+                        seg_loss_ce.item(), np.mean(results_dict['seg_preds']))
+
+    
+            return results_dict
+
     def test_forward(self, batch, **kwargs):
         """
         test method. wrapper around forward pass of network without usage of any ground truth information.

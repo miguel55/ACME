@@ -13,6 +13,9 @@ from easydict import EasyDict as edict
 __C = edict()
 cfg = __C
 
+# Folder of this file (ACME/python): paths below do not depend on the working directory
+__C.base_dir = os.path.dirname(os.path.abspath(__file__))
+
 #########################
 #      Data Loader      #
 #########################
@@ -49,14 +52,48 @@ __C.depth=16
 #  Experiment options   #
 #########################
 
-__C.stats_dir = os.path.abspath("../data/statistics")
-__C.data_dir = os.path.abspath("../database")
-__C.model_dir = 'models'
+__C.stats_dir = os.path.abspath(os.path.join(__C.base_dir, '..', 'data', 'statistics'))
+__C.data_dir = os.path.abspath(os.path.join(__C.base_dir, '..', 'database'))
+__C.model_dir = os.path.join(__C.base_dir, 'models')
 __C.model_name='ACME'
 
 # Load statistics
 __C.mean=np.load(os.path.join(__C.stats_dir,'mean-frame.npy'))
 __C.std=np.load(os.path.join(__C.stats_dir,'std-frame.npy'))
+
+#########################
+#   Training options    #
+#########################
+# Used by detection_train.py. Data are read from data_dir/train (training) and
+# data_dir/test (validation); results go to model_dir/TRAIN.model_name.
+
+__C.TRAIN = edict()
+__C.TRAIN.stage = 'both'                # 1: segmentation, 2: classifier fine-tuning, 'both': 1 then 2
+__C.TRAIN.model_name = 'ACME_train'     # experiment name (subfolder of model_dir)
+__C.TRAIN.init_weights = None           # initial checkpoint, e.g. os.path.join(__C.model_dir, 'ACME.pth').
+                                        # Stage 2 alone: None -> best stage-1 checkpoint of this experiment
+__C.TRAIN.stage2_from = 'acc'           # stage-1 checkpoint that starts stage 2: 'acc' (cell IoU) or 'auc'
+__C.TRAIN.recompute_stats = False       # True: mean/std from the training set instead of stats_dir
+
+# Stage 1: segmentation training (Adam, all parameters, StepLR)
+__C.TRAIN.epochs1 = 24
+__C.TRAIN.lr1 = 1e-3
+__C.TRAIN.step1 = 8                     # StepLR step size (epochs)
+__C.TRAIN.gamma1 = 0.1                  # StepLR decay factor
+
+# Stage 2: classifier fine-tuning (Adam, differential learning rates, StepLR)
+__C.TRAIN.epochs2 = 15
+__C.TRAIN.lr2_body = 1e-5               # U-Net encoders, decoders and segmentation/venule/aux heads
+__C.TRAIN.lr2_heads = 1e-4              # feature-pyramid convolutions and classifier
+__C.TRAIN.step2 = 3
+__C.TRAIN.gamma2 = 0.5
+
+# Common
+__C.TRAIN.weight_decay = 0.0
+__C.TRAIN.num_workers = 0               # DataLoader workers
+__C.TRAIN.save_every = 0                # also keep a checkpoint every N epochs (0: off)
+__C.TRAIN.log_every = 10                # batches between log lines
+__C.TRAIN.seed = 0
 
 #########################
 #  Data visualization   #
@@ -84,9 +121,9 @@ def _merge_a_into_b(a, b):
     if type(a) is not edict:
         return
 
-    for k, v in a.iteritems():
+    for k, v in a.items():
         # a must specify keys that are in b
-        if not b.has_key(k):
+        if k not in b:
             raise KeyError('{} is not a valid config key'.format(k))
 
         # the types must match, too
@@ -110,7 +147,7 @@ def cfg_from_file(filename):
     """Load a config file and merge it into the default options."""
     import yaml
     with open(filename, 'r') as f:
-        yaml_cfg = edict(yaml.load(f))
+        yaml_cfg = edict(yaml.safe_load(f))
 
     _merge_a_into_b(yaml_cfg, __C)
 
@@ -122,10 +159,10 @@ def cfg_from_list(cfg_list):
         key_list = k.split('.')
         d = __C
         for subkey in key_list[:-1]:
-            assert d.has_key(subkey)
+            assert subkey in d
             d = d[subkey]
         subkey = key_list[-1]
-        assert d.has_key(subkey)
+        assert subkey in d
         try:
             value = literal_eval(v)
         except:
